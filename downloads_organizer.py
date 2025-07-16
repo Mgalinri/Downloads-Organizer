@@ -11,14 +11,20 @@ class File:
     def __init__(self, path):
         self.basePath= Path(path)
 
-    def create_organizational_folders(self):
-        new_folders = ['Images','Videos','Audio','Spreadsheets','Docs','PDF','Executables', 'Presentations']
-
+    def create_organizational_folders(self,*args):
+        new_folders = []
+        if not args:
+            new_folders = ['Images', 'Videos', 'Audio', 'Spreadsheets', 'Docs', 'PDF', 'Executables', 'Presentations']
+        else:
+           for i in args:
+            new_folders.append(i)
 
         for name in new_folders:
             path  = self.basePath/name
             path.mkdir(exist_ok=True)
 
+
+    #To do: Design this one to take other extensions besides the existing one
     def organize_files(self):
        image = [
             '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff', '.tif',
@@ -84,13 +90,16 @@ class EventHandling (FileSystemEventHandler, File):
             self.create_organizational_folders()
             self.organize_files()
 
-src = "C:/Users/mgali/Downloads"
 
-event_handler = EventHandling(src)
+# src = "C:/Users/mgali/Downloads"
+
+src_test = "C:/Users/mgali/Downloads"
+
+event_handler = EventHandling(src_test)
 
 observer = Observer()
 
-observer.schedule(event_handler,src)
+observer.schedule(event_handler,src_test)
 
 observer.start()
 try:
