@@ -1,5 +1,11 @@
+# Standard Library
+import time
 from pathlib import Path
-import shutil
+
+# External libraries imports
+from watchdog.events import FileSystemEventHandler,  FileModifiedEvent
+from watchdog.observers import Observer
+
 
 class File:
     def __init__(self, path):
@@ -14,7 +20,7 @@ class File:
             path.mkdir(exist_ok=True)
 
     def organize_files(self):
-       image_suffixes = [
+       image = [
             '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff', '.tif',
             '.heic', '.heif', '.avif', '.svg', '.eps', '.ai', '.cr2',
             '.nef', '.arw', '.orf', '.dng', '.ico', '.cur', '.dds', '.jxr',
@@ -29,7 +35,7 @@ class File:
        ]
        videos = [
            '.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv', '.webm', '.mpeg',
-           '.mpg', '.3gp', '.vob', '.ogv', '.m4v', '.wav'
+           '.mpg', '.3gp', '.vob', '.ogv', '.m4v'
        ]
        audio= [
            '.mp3', '.wav', '.aac', '.flac', '.ogg', '.wma', '.m4a', '.alac',
@@ -38,33 +44,58 @@ class File:
        spreadsheets= [
            '.xls', '.xlsx', '.ods', '.csv', '.tsv'
        ]
+
+       # Create a dictionary
+       file_extensions = {**{x: 'Images' for x in image},
+                          **{x: 'Docs' for x in docs},
+                          **{'.pdf': 'PDF'},
+                          **{x: 'Presentations' for x in presentations},
+                          **{x: 'Audio' for x in audio},
+                          **{x: 'Videos' for x in videos},
+                          **{x: 'Spreadsheets' for x in spreadsheets},
+                          **{x: 'Executables' for x in executables},
+                          }
+
+
        for f in self.basePath.iterdir():
            suffix = f.suffix.lower()
-           if suffix in image_suffixes:
-               f.rename(self.basePath/'Images'/f.name)
-           elif suffix == '.pdf':
-               f.rename(self.basePath / 'PDF' / f.name)
-           elif suffix in presentations:
-               f.rename(self.basePath / 'Presentations' / f.name)
-           elif suffix in executables:
-               f.rename(self.basePath / 'Executables' / f.name)
-           elif suffix in docs:
-               f.rename(self.basePath/'Docs'/f.name)
-           elif suffix in videos:
-               f.rename(self.basePath/'Videos'/f.name)
-           elif suffix in audio:
-               f.rename(self.basePath/'Audio'/f.name)
-           elif suffix in spreadsheets:
-               f.rename(self.basePath/'Spreadsheets'/f.name)
-           else:
-               print(f.name)
-
-file = File("C:/Users/mgali/Downloads")
-file.create_organizational_folders()
-
-file.organize_files()
+           dict_element = file_extensions.get(suffix)
+           if dict_element  :
+               new_path = self.basePath / dict_element / f.name
+               number = 0
+               while new_path.exists():
+                  number+=1
+                  new_name = f"{f.stem}({number}){f.suffix}"
+                  new_path = self.basePath / dict_element / new_name
+               try:
+                f.rename(new_path)
+               except Exception as e:
+                   print(f"This file: {f.name}  Error: {e}")
+                   continue
 
 
-"""for f in d.iterdir():
-       if f.is_file() :
-         print(f)"""
+
+
+
+class EventHandling (FileSystemEventHandler, File):
+
+    def on_modified(self,event):
+        if isinstance(event, FileModifiedEvent):
+            self.create_organizational_folders()
+            self.organize_files()
+
+src = "C:/Users/mgali/Downloads"
+
+event_handler = EventHandling(src)
+
+observer = Observer()
+
+observer.schedule(event_handler,src)
+
+observer.start()
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    observer.stop()
+observer.join()
