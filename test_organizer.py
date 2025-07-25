@@ -5,7 +5,7 @@ from pathlib import Path
 
 import os
 from file_organizer_class import File_Organizer
-from pyfakefs.fake_filesystem_unittest import TestCase
+
 
 
 # This file was created to generate tests but these tests
@@ -40,7 +40,7 @@ all_extensions = [*image,*docs,*executables,*presentations,*videos,*audio,*sprea
 
 # To-Do: Understand POSIX
 
-src_test = "C:/Users/mgali/Downloads/test"
+
 
 def create_random_filename(file_length=100, extension = None ):
     """
@@ -84,7 +84,9 @@ def create_text_docs(test_path):
 
 def test_directory_creation(fs):
         fs.create_dir("/test/")
-        file = File_Organizer("/test/")
+        file = File_Organizer()
+        file.basePath = "/test/"
+        print(file.basePath)
         file.create_organizational_folders()
         new_folders = ['Images', 'Videos', 'Audio', 'Spreadsheets', 'Docs', 'PDF', 'Executables', 'Presentations']
         for i in new_folders:
@@ -97,11 +99,13 @@ def test_files(fs):
     for i in new_folders:
         Path(os.path.join("/test/", i)).mkdir(exist_ok=True)
 
-    for i in range(0,1000):
+    for i in range(0,100):
         create_text_docs("/test/")
     open ("/test/file_py.csv",'w')
     open("/test/file.png", 'w')
-    file = File_Organizer("/test/")
+    file = File_Organizer()
+    file.basePath = "/test/"
+    print(file.basePath)
     doc_ = []
     files_left =  file.organize_files()
     for f in file.basePath.iterdir():

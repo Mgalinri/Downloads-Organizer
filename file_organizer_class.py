@@ -1,10 +1,30 @@
 from pathlib import  Path
+from tkinter import  ttk
 
 class File_Organizer:
-    def __init__(self, path):
-        self.basePath= Path(path)
+    def __init__(self):
+        self._basePath= "/path/"
+        self.progressBar = 0
+        self._stepPointer = 0
+
+    @property
+    def basePath(self):
+        return  self._basePath
+
+    @basePath.setter
+    def basePath(self,value):
+        self._basePath = Path(value)
+
+    @property
+    def stepPointer(self):
+        return self._stepPointer
+
+    @stepPointer.setter
+    def stepPointer(self,value):
+        self._stepPointer = value
 
     def create_organizational_folders(self,*args):
+
         new_folders = []
         if not args:
             new_folders = ['Images', 'Videos', 'Audio', 'Spreadsheets', 'Docs', 'PDF', 'Executables', 'Presentations']
@@ -19,7 +39,9 @@ class File_Organizer:
 
     #To do: Design this one to take other extensions besides the existing one
     # Return a list with the files left that are not organize
-    def organize_files(self):
+    def organize_files(self, uiPb = None):
+
+       self.progressBar = len([x for x in list(self.basePath.iterdir()) if x.is_file()])
        image = [
             '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff', '.tif',
             '.heic', '.heif', '.avif', '.svg', '.eps', '.ai', '.cr2',
@@ -58,10 +80,18 @@ class File_Organizer:
 
        excluded_files = []
 
+       count = 0
+
        for f in self.basePath.iterdir():
-           suffix = f.suffix.lower()
-           dict_element = file_extensions.get(suffix)
-           if dict_element  :
+
+          if f.is_file():
+            count+=1
+            self.stepPointer =(count/self.progressBar) *100
+            if uiPb is not None:
+                uiPb['value']=self.stepPointer
+            suffix = f.suffix.lower()
+            dict_element = file_extensions.get(suffix)
+            if dict_element  :
                new_path = self.basePath / dict_element / f.name
                number = 0
                while new_path.exists():
